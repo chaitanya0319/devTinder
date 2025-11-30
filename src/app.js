@@ -5,6 +5,7 @@ const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const {userAuth}= require("./middlewares/auth");
 
 const app = express();
 const JWT_SECRET = "Dev@Tinder$790"; // keep ONE common secret
@@ -50,28 +51,20 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.get("/profile", async (req, res) => {
+app.get("/profile",userAuth, async (req, res) => {
   try {
-    const cookies = req.cookies;
-    const { token } = cookies;
-
-    if (!token) {
-      throw new Error("Invalid Token");
-    }
-
-    // verify token
-    const decodedMessage = jwt.verify(token, JWT_SECRET);
-    const { _id } = decodedMessage;
-
-    const user = await User.findById(_id);
-
-    if (!user) {
-      throw new Error("User does not exist");
-    }
+    const user=req.user;
     res.send(user);
   } catch (err) {
     res.status(400).send("ERROR:" + err.message);
   }
+});
+
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+    const user = req.user;
+    // Sending a connection request
+    console.log("Sending a connection request");
+    res.send(user.firstName + "sent the connect request!");
 });
 
 app.post("/login", async (req, res) => {
@@ -103,24 +96,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// ✅ GET USER BY EMAIL (using query param instead of body)
-app.get("/user", async (req, res) => {
-  const userEmail = req.query.emailId; // /user?emailId=test@gmail.com
 
-  if (!userEmail) {
-    return res.status(400).send("emailId is required");
-  }
-
-  try {
-    const user = await User.findOne({ emailId: userEmail });
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    res.send(user);
-  } catch (err) {
-    res.status(500).send("Something went wrong");
-  }
-});
 
 // ✅ FEED – get all users
 app.get("/feed", async (req, res) => {
@@ -132,41 +108,6 @@ app.get("/feed", async (req, res) => {
   }
 });
 
-// ✅ DELETE USER BY ID (use URL param)
-app.delete("/user/:id", async (req, res) => {
-  const userId = req.params.id;
-
-  try {
-    const user = await User.findByIdAndDelete(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    res.send("User is deleted successfully");
-  } catch (err) {
-    res.status(500).send("Something went wrong");
-  }
-});
-
-// ✅ UPDATE USER BY ID (partial update)
-app.patch("/user/:id", async (req, res) => {
-  const userId = req.params.id;
-  const data = req.body;
-
-  try {
-    const user = await User.findByIdAndUpdate(userId, data, {
-      new: true,          // return updated doc
-      runValidators: true // apply schema validation
-    });
-
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-
-    res.send("User updated successfully");
-  } catch (err) {
-    res.status(400).send("Something went wrong: " + err.message);
-  }
-});
 
 // ✅ DB connect + start server
 connectDB()
