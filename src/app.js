@@ -23,77 +23,19 @@ app.use(cookieParser());
 //         res.status(400).send("ERROR:"+err.message);
 //     }
 // });
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
+const requestRouter = require("./routes/request");
+app.use("/", authRouter);
+app.use("/", profileRouter);
+app.use("/", requestRouter);
 
-app.post("/signup", async (req, res) => {
-  try {
-    // 1. Validate input
-    validateSignUpData(req.body);
-
-    // 2. Hash password
-    const passwordHash = await bcrypt.hash(req.body.password, 10);
-
-    // 3. Create user with hashed password
-    const user = new User({
-      ...req.body,
-      password: passwordHash,
-    });
-
-    // 4. Save to DB
-    await user.save();
-
-    // 5. Create JWT token and set cookie
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET);
-    res.cookie("token", token);
-
-    res.send("User added successfully!");
-  } catch (err) {
-    res.status(400).send("ERROR: " + err.message);
-  }
-});
-
-app.get("/profile",userAuth, async (req, res) => {
-  try {
-    const user=req.user;
-    res.send(user);
-  } catch (err) {
-    res.status(400).send("ERROR:" + err.message);
-  }
-});
 
 app.post("/sendConnectionRequest", userAuth, async (req, res) => {
     const user = req.user;
     // Sending a connection request
     console.log("Sending a connection request");
     res.send(user.firstName + "sent the connect request!");
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    const { emailId, password } = req.body;
-
-    // 1. Find user by email
-    const user = await User.findOne({ emailId: emailId });
-
-    if (!user) {
-      throw new Error("Invalid Credentails");
-    }
-
-    // 2. Compare password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      throw new Error("Invalid Credentails");
-    }
-
-    // 3. Create JWT token and set cookie
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET);
-    res.cookie("token", token);
-
-    // 4. Success
-    res.send("Login successful");
-  } catch (err) {
-    res.status(400).send("ERROR: " + err.message);
-  }
 });
 
 
