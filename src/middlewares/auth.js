@@ -9,9 +9,7 @@ const userAuth = async (req, res, next) => {
       throw new Error("Token is not valid!!!!!!!!");
     }
 
-    // Correct variable name + correct secret
     const decodedObj = jwt.verify(token, "Dev@Tinder$790");
-
     const { _id } = decodedObj;
 
     const user = await User.findById(_id);
@@ -20,9 +18,10 @@ const userAuth = async (req, res, next) => {
     }
 
     req.user = user;
-    next();
+    next(); // ✅ this is correct
   } catch (err) {
-    res.status(400).send("ERROR:" + err.message);
+    console.error(err); // add this to see real stack
+    res.status(400).send("ERROR: " + err.message);
   }
 };
 
