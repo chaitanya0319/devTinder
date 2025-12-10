@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const {userAuth}= require("./middlewares/auth");
+const userRouter= require("./routes/user");
 
 const app = express();
 const JWT_SECRET = "Dev@Tinder$790"; // keep ONE common secret
@@ -29,7 +30,7 @@ const requestRouter = require("./routes/request");
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
-
+app.use("/", userRouter);
 
 app.post("/sendConnectionRequest", userAuth, async (req, res) => {
     const user = req.user;
