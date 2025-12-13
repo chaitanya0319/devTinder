@@ -23,13 +23,14 @@ authRouter.post("/signup", async (req, res) => {
       });
   
       // 4. Save to DB
-      await user.save();
-  
-      // 5. Create JWT token and set cookie
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET);
-      res.cookie("token", token);
-  
-      res.send("User added successfully!");
+    const savedUser = await user.save();
+    const token = await savedUser.getJWT();
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000),
+    });
+
+    res.json({ message: "User Added successfully!", data: savedUser });
     } catch (err) {
       res.status(400).send("ERROR: " + err.message);
     }
@@ -58,7 +59,7 @@ authRouter.post("/signup", async (req, res) => {
       res.cookie("token", token);
   
       // 4. Success
-      res.send("Login successful");
+      res.send(user);
     } catch (err) {
       res.status(400).send("ERROR: " + err.message);
     }
