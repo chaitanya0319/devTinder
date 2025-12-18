@@ -10,6 +10,7 @@ const userRouter= require("./routes/user");
 const cors = require("cors");
 const app = express();
 const JWT_SECRET = "Dev@Tinder$790"; // keep ONE common secret
+require("dotenv").config();
 
 app.use(
   cors({
@@ -64,7 +65,7 @@ app.get("/feed", async (req, res) => {
 connectDB()
   .then(() => {
     console.log("Database connection established...");
-    app.listen(3000, () => {
+    app.listen(process.env.PORT, () => {
       console.log("Server is successfully listening on port 3000");
     });
   })
